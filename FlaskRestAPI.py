@@ -1,14 +1,7 @@
 
 import collections
-
-
-
-
 from http import client
-
-
 import pprint
-
 from dotenv import load_dotenv, find_dotenv
 import os
 import pprint
@@ -17,89 +10,56 @@ load_dotenv(find_dotenv())
 from flask import Flask
 import datetime
 import json
+from flask_pymongo import PyMongo
 from bson import json_util
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask import jsonify, request
 from bson.objectid import ObjectId
+from werkzeug.utils import secure_filename  
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+#from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+app = Flask(__name__)
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+
+#***************************************monogDB client***********************************************************
 
 password = os.environ.get("MONGODB_PWD")
 conntection_string = f"mongodb+srv://balabk5:{password}@cluster0.7xjb73e.mongodb.net/?retryWrites=true&w=majority"
+
+
 
 client = MongoClient(conntection_string)
 dbs = client.list_database_names()
 test_db = client.trail
 collections = test_db.list_collection_names()
 print(collections)
-  
-
-def insert_test_doc():
-    collection = test_db.test
-    test_document={
-        "name":"bala",
-        "type": "testing"
-    }
-    inserted_id = collection.insert_one(test_document).inserted_id
-    print(inserted_id)
 
 
+#*exctracting data from mongodb and setting pandas dataframe
 
+   
 
-production = client.production
-person_collection = production.person_collection
-
-def creare_document():
-    name = ["bala","kumar","ragul","lenin","amudhesh"]
-    age =[21,22,23,24,23,24]
-
-    docs= []
-
-    for names, ages in zip(name,age):
-        doc = {"name":names,"age":ages}
-        docs.append(doc)
-
-    person_collection.insert_many(docs)
-
-
-
-
-printer = pprint.PrettyPrinter()
-
-
-
-def find_person():
-    person_name = person_collection.find_one({"name":"bala"})    
-    printer.pprint(person_name)
-
-
-
-def count_people():
-    count = person_collection.count_documents(filter={})
-    print("num of people", count)
-
-
-
-def get_person_by_id(person_id):
-    
-
-    _id = ObjectId(person_id)
-    person = person_collection.find_one({"_id":_id})
-    printer.pprint(person)
-
-
-
-x = datetime.datetime.now()
-
-app = Flask(__name__)
-cors = CORS(app)
-
-people_list_doc = []
+collection = test_db.dummy
+user = collection.find() 
+df = pd.DataFrame(list(collection.find()))
+del df["_id"]
+print(df)
 
 #*****************************************************************REST API Assignment *****************************************************************************
 #all User list
+
+
+
 @app.route("/user")
 def find_all_people():
     collection = test_db.test
     user = collection.find() 
+    
     return json.loads(json_util.dumps(user))
 
     
@@ -109,18 +69,25 @@ def find_all_people():
 def user(id):
     collection = test_db.test
     user = collection.find_one({'_id':ObjectId(id)})
+
     return json.loads(json_util.dumps(user))
+
+
 
 
 @app.route("/add", methods=['POST'])
 def add_user():
+    
     collection = test_db.test
-    _json = request.json
-    _name = _json['name']
-    _age = _json['age']
-
+    req = request.get_json()
+		
+    # _json = request.json
+    _age = request.json['age']
+    _name = request.json['name']
+    
+    
     if _name and _age and request.method == 'POST':
-        inserted_id = collection.insert_one({'name':_name,'age':_age}).inserted_id
+        inserted_id = collection.insert_one({'age':_age,'name':_name}).inserted_id
         print(inserted_id)
         resp = jsonify("user added succesfully")
         resp.status_code = 200
@@ -128,6 +95,50 @@ def add_user():
         return resp
     else:
         return not_found()
+    
+col_list_from_client_try=[]
+@app.route("/selectedcolumn", methods=['POST'])
+def selectedcolumn():
+    
+    collection = test_db.selectedcolumn
+    req = request.get_json()
+		
+    # _json = request.json
+    
+    col_0 = request.json[0]
+    col_1 = request.json[1]
+    col_2 = request.json[2]
+    col_3 = request.json[3]
+    col_list_from_client = [col_0,col_1,col_2,col_3]
+    for i in range(3):
+        col_list_from_client_try.append(col_list_from_client[i])
+    print(col_list_from_client)
+    
+    
+    if col_0 and col_1 and request.method == 'POST':
+        inserted_id = collection.insert_one({'column_0':col_0,'column_1':col_1,'column_2':col_2,'column_3':col_3}).inserted_id
+        print(inserted_id)
+        resp = jsonify("user added succesfully")
+        resp.status_code = 200
+
+        return resp
+    else:
+        return not_found()
+print(col_list_from_client_try)
+@app.route("/file", methods=['POST'])
+def add_file():
+    
+    collection = test_db.file
+    doc_res = request.files['file']
+    
+    
+    collection.insert_one({'file_name':doc_res})
+    resp = jsonify("user added succesfully")
+    resp.status_code = 200
+
+    return resp
+    
+    
 
 
 @app.route("/delete/<id>", methods=['DELETE'])        
