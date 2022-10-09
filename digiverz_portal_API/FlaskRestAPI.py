@@ -35,6 +35,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 #***************************************monogDB client***********************************************************
 
+
 password = os.environ.get("MONGODB_PWD")
 conntection_string = f"mongodb+srv://balabk5:{password}@cluster0.7xjb73e.mongodb.net/?retryWrites=true&w=majority"
 
