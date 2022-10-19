@@ -1,7 +1,7 @@
 
 from flask import Flask, Blueprint, jsonify
 from flask_cors import CORS
-from flask_pymongo import pymongo
+# from flask_pymongo import pymongo
 
 from digiverz_portal_API.FlaskRestAPI import project_api_routes
 from digiverz_portal_API.model_builder import model_builder_endpoint

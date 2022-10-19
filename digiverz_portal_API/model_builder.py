@@ -1,9 +1,13 @@
 
+from array import array
 from typing import Collection
 from urllib import request
 from digiverz_portal_API.FlaskRestAPI import test_db
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import bson
 import pickle
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
@@ -17,9 +21,9 @@ import numpy as np
 
 
 def model_builder_endpoint(endpoints): 
-    @endpoints.route("/user", methods=['GET'])
+    @endpoints.route("/mbresult", methods=['GET'])
     def find_all_people():
-        collection = test_db.login
+        collection = test_db.modelbuilder
         user = collection.find() 
         
         
@@ -39,7 +43,9 @@ def model_builder_endpoint(endpoints):
         plt.title('')
         plt.ylabel('Salary')
         plt.xticks(rotation=90)
-        plt.savefig("squares.png")
+        plt.savefig(r"D:\BK dev\digitech\DigitechPortal\digiverz\src\assests\squares.png", transparent=True)
+        
+        
         
         #*geting value from the client************
 
@@ -59,15 +65,27 @@ def model_builder_endpoint(endpoints):
         X = X.astype(float)
         
         y_pred = regressor_loaded.predict(X)
+
+        mb_result = np.array_str(y_pred)
+        data = df["Country"].value_counts()
+
+        fig1, ax1 = plt.subplots()
+        ax1.pie(data, labels=data.index, autopct="%1.1f%%", shadow=True, startangle=90)
+        ax1.axis("equal")
         
+        plt.savefig(r"D:\BK dev\digitech\DigitechPortal\digiverz\src\assests\squares1.png",transparent=True)
+        imgmb = {
+            "imagedata" : bson.Binary(pickle.dumps(fig)),
+            "contenttype": "image/png"
+        }
         if  request.method == 'POST':
-            inserted_id = collection.insert_one({ 'country': _country,'degree':  _degree,'exp': _exp, 'result':y_pred}).inserted_id
+            inserted_id = collection.insert_one({ 'country': _country,'degree':  _degree,'exp': _exp, 'result':mb_result,  "binary_field": imgmb }).inserted_id
             print(inserted_id)
             resp = jsonify("user inputs added succesfully")
             resp.status_code = 200
 
             return resp
-        return json.loads(json_util.dumps(y_pred))    
+        return json.loads(json_util.dumps(mb_result))
 
        
     return endpoints

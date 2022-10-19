@@ -6,9 +6,13 @@ import pprint
 from tokenize import Name
 from dotenv import load_dotenv, find_dotenv
 import os
+import sys
 import bson
 import pickle
 import pprint
+import pandas_profiling as pp
+import seaborn as sns
+
 from pymongo import MongoClient
 load_dotenv(find_dotenv())
 from flask import Flask
@@ -22,13 +26,22 @@ from flask import jsonify, request
 from bson.objectid import ObjectId
 from werkzeug.utils import secure_filename  
 import pandas as pd
+import pyspark
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import when, lit,regexp_replace,substring,to_timestamp,to_date,col
+from pyspark.sql.types import DoubleType,StringType
 from sklearn.preprocessing import LabelEncoder
+from pyspark.sql.types import *
 #from sklearn.tree import DecisionTreeClassifier
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 app = Flask(__name__)
+
+
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 
 
@@ -43,8 +56,11 @@ client = MongoClient(conntection_string)
 test_db = client.trail
 collections = test_db.list_collection_names()
 # print(collections)
-
-
+#*spark session.................................................
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+spark = SparkSession.builder.appName('First_App').getOrCreate()
+spark.conf.set('spark.sql.repl.eagerEval.enabled', True)
 
 #*exctracting data from mongodb and setting pandas dataframe
 
@@ -158,18 +174,20 @@ def project_api_routes(endpoints):
         
         collection = test_db.file
         f = request.files['file']
-        # df = pd.read_csv(f)
-        # print(df)
-        print(secure_filename(f.filename))
-        f.save(os.path.join(app.config['upload_folder'], secure_filename(f.filename)))
-        collection.insert_one({
-        "binary_field": bson.Binary(pickle.dumps(f)),
-            })
+        
+        pandas_df = pd.read_csv(f,encoding='ISO-8859-1')
+        
+        sdf = spark.createDataFrame(pandas_df.astype(str))
 
+        # sdf.printSchema()
+        sdf.show()
+        print(sdf.head())
+        svm = sns.heatmap(pandas_df.isnull(),cbar=False,cmap='viridis')
+
+        figure = svm.get_figure()    
+        figure.savefig('svm_conf.png',dpi=400)
         
-        
-        
-        resp = jsonify("user added succesfully")
+        resp = jsonify("File saved successfully")
         resp.status_code = 200
 
         return resp
