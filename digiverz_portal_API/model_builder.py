@@ -1,5 +1,6 @@
 
 from array import array
+from turtle import color
 from typing import Collection
 from urllib import request
 from digiverz_portal_API.FlaskRestAPI import test_db
@@ -38,7 +39,7 @@ def model_builder_endpoint(endpoints):
             data = pickle.load(file)
         df = data["df"]
         fig, ax = plt.subplots(1,1, figsize=(12, 7))
-        df.boxplot('Salary', 'Country', ax=ax)
+        plt.bar('Salary', 'Country', color='red', width=0.5)
         plt.suptitle('Salary (US$) v Country')
         plt.title('')
         plt.ylabel('Salary')

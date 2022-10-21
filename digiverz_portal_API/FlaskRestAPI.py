@@ -175,7 +175,7 @@ def project_api_routes(endpoints):
         collection = test_db.file
         f = request.files['file']
         
-        pandas_df = pd.read_csv(f,encoding='ISO-8859-1')
+        pandas_df = pd.read_csv(f)
         
         sdf = spark.createDataFrame(pandas_df.astype(str))
 
