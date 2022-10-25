@@ -172,25 +172,47 @@ def project_api_routes(endpoints):
     @endpoints.route("/file", methods=['POST'])
     def add_file():
         
-        collection = test_db.file
+        collection = test_db.dqresults
         f = request.files['file']
         
-        pandas_df = pd.read_csv(f)
         
-        sdf = spark.createDataFrame(pandas_df.astype(str))
+        pandas_df = pd.read_csv(f, low_memory=False)
+        pdf= pandas_df.fillna(0)
 
-        # sdf.printSchema()
-        sdf.show()
-        print(sdf.head())
-        svm = sns.heatmap(pandas_df.isnull(),cbar=False,cmap='viridis')
+        # sdf = spark.createDataFrame(pandas_df.astype(str))
 
-        figure = svm.get_figure()    
-        figure.savefig('svm_conf.png',dpi=400)
+        # # sdf.printSchema()
+        # sdf.show()
+        # print(sdf.head())
+        # svm = sns.heatmap(pandas_df.isnull(),cbar=False,cmap='viridis')
+        vars_with_na = [var for var in pandas_df.columns if pandas_df[var].isnull().sum() > 0]
+
+        # figure = svm.get_figure()    
+        # figure.savefig('svm_conf.png',dpi=400)
+        size = sys.getsizeof(pandas_df)
+        res_size = size/1000000
+        dataset_shape = pandas_df.shape
+        def printinfo():
+            temp = pd.DataFrame(index=pandas_df.columns)
+            
+            
+            temp['null_count'] = pandas_df.isnull().sum()
+            temp['unique_count'] = pandas_df.nunique()
+            temp['duplicate_count'] =pandas_df.duplicated().sum() 
+    
+    
+            return temp.values.tolist()
         
-        resp = jsonify("File saved successfully")
+        
+        inserted_id = collection.insert_one({'ColunmList': list(pandas_df.columns), 'dec':printinfo(), 'dataset_shape':dataset_shape, 'df_head':pdf.head().values.tolist(),'df_tail':pandas_df.tail().values.tolist(),
+        'df_des':pandas_df.describe().values.tolist(), 'size': res_size }).inserted_id
+        print(inserted_id)
+        resp = jsonify("user added succesfully")
         resp.status_code = 200
 
         return resp
+        
+      
         
         
 

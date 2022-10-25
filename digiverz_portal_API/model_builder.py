@@ -21,7 +21,14 @@ from flask import jsonify, request
 import numpy as np
 
 
-def model_builder_endpoint(endpoints): 
+def model_builder_endpoint(endpoints):
+    @endpoints.route("/dqresult", methods=['GET'])
+    def find_all_dq_result():
+        collection = test_db.dqresults
+        user = collection.find() 
+        
+        
+        return json.loads(json_util.dumps(user)) 
     @endpoints.route("/mbresult", methods=['GET'])
     def find_all_people():
         collection = test_db.modelbuilder
