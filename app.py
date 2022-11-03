@@ -6,6 +6,7 @@ from flask_cors import CORS
 from digiverz_portal_API.FlaskRestAPI import project_api_routes
 from digiverz_portal_API.model_builder import model_builder_endpoint
 from digiverz_portal_API.EDA import eda_endpoint
+from digiverz_portal_API.Alogoanalysis import algo_analyze_endpoints
 
 def create_app():
     web_app = Flask(__name__)  # Initialize Flask App
@@ -15,6 +16,7 @@ def create_app():
     api_blueprint = project_api_routes(api_blueprint)
     api_blueprint = model_builder_endpoint(api_blueprint)
     api_blueprint = eda_endpoint(api_blueprint)
+    api_blueprint = algo_analyze_endpoints(api_blueprint)
     web_app.register_blueprint(api_blueprint, url_prefix='/api')    
     
 
