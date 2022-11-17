@@ -57,19 +57,15 @@ test_db = client.trail
 collections = test_db.list_collection_names()
 # print(collections)
 #*spark session.................................................
-os.environ['PYSPARK_PYTHON'] = sys.executable
-os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
-spark = SparkSession.builder.appName('First_App').getOrCreate()
-spark.conf.set('spark.sql.repl.eagerEval.enabled', True)
+# os.environ['PYSPARK_PYTHON'] = sys.executable
+# os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+# spark = SparkSession.builder.appName('First_App').getOrCreate()
+# spark.conf.set('spark.sql.repl.eagerEval.enabled', True)
 
 #*exctracting data from mongodb and setting pandas dataframe
 
    
 
-import sys
-
-sys.setrecursionlimit(10**6)
-print(sys.getrecursionlimit())
 
 
 

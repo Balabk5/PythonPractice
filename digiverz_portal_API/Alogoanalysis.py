@@ -38,9 +38,12 @@ from datetime import datetime
 
 #*algo analyze
 from pycaret.datasets import get_data
-from pycaret.classification import *
 
+from pycaret.regression import *
+from pycaret.classification import *
 glob_file = ''
+
+ 
 
 def algo_analyze_endpoints(endpoints):
 
@@ -87,35 +90,36 @@ def algo_analyze_endpoints(endpoints):
         collection = test_db.algoanalyze
         _req = request.get_json()
         col_name = _req['colunm']
-        
+        pycaret_opt = _req['pycaretopt']
+
         f = pd.read_pickle("./algo.pkl")
         
         f.to_csv(r'file.csv')
-
-
-        
         dataset = get_data('file')
-
-        data = dataset.sample(frac=0.95, random_state=786)
-        data_unseen = dataset.drop(data.index)
-        data.reset_index(inplace=True, drop=True)
-        data_unseen.reset_index(inplace=True, drop=True)
-        print('Data for Modeling: ' + str(data.shape))
-        print('Unseen Data For Predictions: ' + str(data_unseen.shape))
-
-        exp_clf101 = setup(data=data, target= col_name)
-        best_model = compare_models()
-        best_model = pull()
-        algo_result = best_model.values.tolist()
-        inserted_id = collection.insert_one({
-            'analyzed_data':
-            algo_result,
+        if pycaret_opt == "Classification":
             
-        }).inserted_id
-        print(inserted_id)
-        resp = jsonify("user added succesfully")
-        resp.status_code = 200
 
+            data = dataset.sample(frac=0.95, random_state=786)
+            data_unseen = dataset.drop(data.index)
+            data.reset_index(inplace=True, drop=True)
+            data_unseen.reset_index(inplace=True, drop=True)
+            print('Data for Modeling: ' + str(data.shape))
+            print('Unseen Data For Predictions: ' + str(data_unseen.shape))
+
+            exp_clf101 = setup(data=data, target= col_name)
+            best_model = compare_models()
+            best_model = pull()
+            algo_result = best_model.values.tolist()
+            algo_result_modified = best_model.to_json(orient='records')
+            inserted_id = collection.insert_one({
+                'analyzed_data':
+                algo_result,
+                'analyzed_data_modified':algo_result_modified
+            }).inserted_id
+            print(inserted_id)
+            resp = jsonify("OK")
+            resp.status_code = 200
+        
         return resp
 
     @endpoints.route("/algoresults", methods=['GET'])
@@ -127,5 +131,17 @@ def algo_analyze_endpoints(endpoints):
         resp = jsonify("Colunm names")
         resp.status_code = 200
         return json.loads(json_util.dumps(algo_results))        
+
+
+    @endpoints.route("/algotabletry", methods=['GET'])
+    def algo_table_results():
+        
+        
+        global algo_result_modified
+        res_table_final = algo_result_modified
+        resp = jsonify("Colunm names")
+        resp.status_code = 200
+        return res_table_final
+
 
     return endpoints

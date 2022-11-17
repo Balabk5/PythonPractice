@@ -41,12 +41,7 @@ def eda_endpoint(endpoints):
         
         collection = test_db.dqresults
         f = request.files['file']
-        
-        
 
-        
-
-        
 
         pandas_df = pd.read_csv(f, low_memory=False, encoding= 'unicode_escape')
         pandas_df.to_pickle("./dummy.pkl")
