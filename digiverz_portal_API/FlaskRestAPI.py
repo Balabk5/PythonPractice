@@ -93,17 +93,18 @@ def project_api_routes(endpoints):
         print("Hello world")
         return res
 
-    # @endpoints.route("/user", methods=['GET'])
-    # def find_all_people():
-    #     collection = test_db.login
-    #     user = collection.find() 
+    @endpoints.route("/user", methods=['GET'])
+    
+    def find_all_peopl():
+        collection = test_db.login
+        user = collection.find() 
         
         
-    #     return json.loads(json_util.dumps(user))
+        return json.loads(json_util.dumps(user))
 
         
         
-        # return json.loads(json_util.dumps(people_list_doc))
+            
     @endpoints.route("/user/<id>")
     def user(id):
         collection = test_db.test
