@@ -96,29 +96,28 @@ def algo_analyze_endpoints(endpoints):
         
         f.to_csv(r'file.csv')
         dataset = get_data('file')
-        if pycaret_opt == "Classification":
-            
+     
+        data = dataset.sample(frac=0.95, random_state=786)
+        data_unseen = dataset.drop(data.index)
+        data.reset_index(inplace=True, drop=True)
+        data_unseen.reset_index(inplace=True, drop=True)
+        print('Data for Modeling: ' + str(data.shape))
+        print('Unseen Data For Predictions: ' + str(data_unseen.shape))
+        exp_clf101 = setup(data=data, target= col_name)
+        best_model = compare_models()
+        best_model = pull()
+        algo_result = best_model.values.tolist()
+        algo_result_modified = best_model.to_json(orient='records')
+        inserted_id = collection.insert_one({
+                    'analyzed_data':
+                    algo_result,
+                    'analyzed_data_modified':algo_result_modified
+                }).inserted_id
+        print(inserted_id)
+        resp = jsonify("OK")
+        resp.status_code = 200    
 
-            data = dataset.sample(frac=0.95, random_state=786)
-            data_unseen = dataset.drop(data.index)
-            data.reset_index(inplace=True, drop=True)
-            data_unseen.reset_index(inplace=True, drop=True)
-            print('Data for Modeling: ' + str(data.shape))
-            print('Unseen Data For Predictions: ' + str(data_unseen.shape))
-
-            exp_clf101 = setup(data=data, target= col_name)
-            best_model = compare_models()
-            best_model = pull()
-            algo_result = best_model.values.tolist()
-            algo_result_modified = best_model.to_json(orient='records')
-            inserted_id = collection.insert_one({
-                'analyzed_data':
-                algo_result,
-                'analyzed_data_modified':algo_result_modified
-            }).inserted_id
-            print(inserted_id)
-            resp = jsonify("OK")
-            resp.status_code = 200
+               
         
         return resp
 
