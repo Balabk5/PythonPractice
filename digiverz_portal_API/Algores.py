@@ -43,6 +43,8 @@ matplotlib.use('Agg')
 
 load_dotenv(find_dotenv())
 
+
+
 def algo_reg_endponts(endpoints):
     @endpoints.route("/post_col_name_reg", methods=['POST'])
     def algo_analyze_result_reg():
@@ -100,5 +102,5 @@ def algo_reg_endponts(endpoints):
         resp.status_code = 200  
         return json.loads(json_util.dumps(algo_results))    
 
-
+    
     return endpoints

@@ -39,7 +39,7 @@ from datetime import datetime
 #*algo analyze
 from pycaret.datasets import get_data
 
-from pycaret.regression import *
+
 from pycaret.classification import *
 glob_file = ''
 
